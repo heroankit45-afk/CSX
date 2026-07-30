@@ -6,7 +6,7 @@ import org.json.JSONObject
 import kotlinx.coroutines.runBlocking
 
 class RogmoviesProvider : VegaMoviesProvider() { // all providers must be an instance of MainAPI
-    override var mainUrl = "https://rogmovies.vip"
+    override var mainUrl = "https://rogmovies.rest/"
     override var name = "Rogmovies"
     override val hasMainPage = true
     override var lang = "hi"
@@ -28,7 +28,7 @@ class RogmoviesProvider : VegaMoviesProvider() { // all providers must be an ins
         val basemainUrl: String? by lazy {
             runBlocking {
                 try {
-                    val response = app.get("https://raw.githubusercontent.com/SaurabhKaperwan/Utils/refs/heads/main/urls.json")
+                    val response = app.get("https://raw.githubusercontent.com/heroankit45-afk/Utils/refs/heads/main/urls.json")
                     val json = response.text
                     val jsonObject = JSONObject(json)
                     jsonObject.optString("rogmovies")
