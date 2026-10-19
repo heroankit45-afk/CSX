@@ -1,3 +1,13 @@
+<div align="center">
+
+[![Status: Hiatus](https://img.shields.io/badge/Status-On_Hiatus-orange?style=for-the-badge&logo=clock)](https://github.com)
+
+**This repository is currently on hiatus. Maintenance, bug fixes, and new extension updates are paused until further notice.**
+
+---
+
+</div>
+
 ### 🕹 Tools and Programming languages used :
 <p align="left">
   <a href="https://skillicons.dev">
@@ -12,6 +22,9 @@
 These extensions are Free: You can use, study, share and modify it at your will. They can be redistributed and/or modified under the terms of the
 [GNU General Public License](https://www.gnu.org/licenses/gpl.html) version 3 or later published by the Free Software Foundation.
 
+
+### Links
+[Official CloudStream repo](https://github.com/recloudstream/cloudstream) · [CloudStream Wiki](https://cloudstream.miraheze.org/wiki/Main_Page)
 
 ### DMCA
 We hereby issue this notice to inform you that these extensions just function like an ordinary browser (like your browser) that fetch video files from internet,

@@ -9,7 +9,6 @@ import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.LoadResponse.Companion.addImdbId
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.megix.CineStreamExtractors.invokeAllSources
-import com.megix.CineStreamExtractors.invokeAnimes
 
 class CineTmdbProvider: MainAPI() {
     override var name = "CineTmdb"
@@ -48,7 +47,6 @@ class CineTmdbProvider: MainAPI() {
         "discover/tv?api_key=$apiKey&with_networks=49" to "HBO",
         "discover/tv?api_key=$apiKey&with_networks=4330" to "Paramount+",
         "discover/tv?api_key=$apiKey&with_networks=3353" to "Peacock",
-        "discover/movie?api_key=$apiKey&language=en-US&page=1&sort_by=popularity.desc&with_origin_country=IN&release_date.gte=${getDate().lastWeekStart}&release_date.lte=${getDate().today}" to "Trending Indian Movies",
         "discover/movie?api_key=$apiKey&with_keywords=210024|222243" to "Anime Movies",
         // "movie/top_rated?api_key=$apiKey&region=US" to "Top Rated Movies",
         "tv/top_rated?api_key=$apiKey&region=US" to "Top Rated TV Shows",
@@ -280,40 +278,30 @@ class CineTmdbProvider: MainAPI() {
         val year = res.airedYear ?: res.year
         val seasonYear = res.year ?: res.airedYear
 
-        runAllAsync(
-            {
-                invokeAllSources(
-                    AllLoadLinksData(
-                        res.title,
-                        res.imdbId,
-                        res.id,
-                        res.aniId?.toIntOrNull(),
-                        null,
-                        null,
-                        year,
-                        seasonYear,
-                        res.season,
-                        res.episode,
-                        res.isAnime,
-                        res.isBollywood,
-                        res.isAsian,
-                        res.isCartoon,
-                        res.orgTitle,
-                        null,
-                        null,
-                        null,
-                        null,
-                    ),
-                    subtitleCallback,
-                    callback
-                )
-            },
-            {
-                if (res.isAnime) {
-                    val (aniId, malId) = convertTmdbToAnimeId(res.title, res.date, res.airedDate, if (res.season == null) TvType.AnimeMovie else TvType.Anime)
-                    invokeAnimes(malId, aniId, res.episode, res.airedYear, "imdb", subtitleCallback, callback)
-                }
-            }
+        invokeAllSources(
+            AllLoadLinksData(
+                res.title,
+                res.imdbId,
+                res.id,
+                res.aniId?.toIntOrNull(),
+                null,
+                null,
+                year,
+                seasonYear,
+                res.season,
+                res.episode,
+                res.isAnime,
+                res.isBollywood,
+                res.isAsian,
+                res.isCartoon,
+                res.orgTitle,
+                null,
+                null,
+                null,
+                null,
+            ),
+            subtitleCallback,
+            callback
         )
 
         return true

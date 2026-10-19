@@ -52,6 +52,7 @@ import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 import java.math.BigInteger
 import kotlin.math.min
+import java.util.Base64
 
 // Settings
 import com.megix.settings.Settings
@@ -937,101 +938,6 @@ suspend fun getAniListInfo(animeId: Int): AnimeInfo? {
     )
 }
 
-suspend fun convertTmdbToAnimeId(
-    title: String?,
-    date: String?,
-    airedDate: String?,
-    type: TvType
-): AniIds {
-    val sDate = date?.split("-")
-    val sAiredDate = airedDate?.split("-")
-
-    val year = sDate?.firstOrNull()?.toIntOrNull()
-    val airedYear = sAiredDate?.firstOrNull()?.toIntOrNull()
-    val season = getSeason(sDate?.get(1)?.toIntOrNull())
-    val airedSeason = getSeason(sAiredDate?.get(1)?.toIntOrNull())
-
-    return if (type == TvType.AnimeMovie) {
-        tmdbToAnimeId(title, airedYear, "", type)
-    } else {
-        tmdbToAnimeId(title, year, season, type)
-    }
-}
-
-suspend fun convertImdbToAnimeId(
-    title: String?,
-    year: Int?,
-    airedDate: String?,
-    type: TvType
-): AniIds {
-    val sAiredDate = airedDate?.split("-")
-    val airedYear = sAiredDate?.firstOrNull()?.toIntOrNull()
-    val airedSeason = getSeason(sAiredDate?.get(1)?.toIntOrNull())
-
-    return if (type == TvType.AnimeMovie) {
-        tmdbToAnimeId(title, year, "", type)
-    } else {
-        tmdbToAnimeId(title, airedYear, airedSeason, type)
-    }
-}
-
-suspend fun tmdbToAnimeId(title: String?, year: Int?, season: String?, type: TvType): AniIds {
-    val anilistAPI = "https://graphql.anilist.co"
-    val query = """
-        query (
-          ${'$'}page: Int = 1
-          ${'$'}search: String
-          ${'$'}sort: [MediaSort] = [POPULARITY_DESC, SCORE_DESC]
-          ${'$'}type: MediaType
-          ${'$'}season: MediaSeason
-          ${'$'}seasonYear: Int
-          ${'$'}format: [MediaFormat]
-        ) {
-          Page(page: ${'$'}page, perPage: 20) {
-            media(
-              search: ${'$'}search
-              sort: ${'$'}sort
-              type: ${'$'}type
-              season: ${'$'}season
-              seasonYear: ${'$'}seasonYear
-              format_in: ${'$'}format
-            ) {
-              id
-              idMal
-            }
-          }
-        }
-    """.trimIndent()
-
-    val variables = mapOf(
-        "search" to title,
-        "sort" to "SEARCH_MATCH",
-        "type" to "ANIME",
-        "season" to season?.uppercase(),
-        "seasonYear" to year,
-        "format" to listOf(if (type == TvType.AnimeMovie) "MOVIE" else "TV", "ONA")
-    ).filterValues { it != null && it.toString().isNotEmpty() }
-
-    val res = app.post(
-        url = anilistAPI,
-        json = mapOf(
-            "query" to query,
-            "variables" to variables
-        )
-    ).parsedSafe<AniSearch>()?.data?.Page?.media?.firstOrNull()
-
-    return AniIds(res?.id, res?.idMal)
-}
-
-fun getSeason(month: Int?): String? {
-    val seasons = arrayOf(
-        "Winter", "Winter", "Spring", "Spring", "Spring", "Summer",
-        "Summer", "Summer", "Fall", "Fall", "Fall", "Winter"
-    )
-    if (month == null) return null
-    return seasons[month - 1]
-}
-
 suspend fun fetchTmdbLogoUrl(
     tmdbAPI: String,
     apiKey: String,
@@ -1222,20 +1128,6 @@ fun decryptVidrockUrl(encryptedPayload: String): String? {
         null
     }
 }
-
-//Xpass
-fun extractXpassBackups(html: String): List<Pair<String, String>> {
-    val raw = Regex("""var backups=(\[.*?]);""", RegexOption.DOT_MATCHES_ALL)
-        .find(html)?.groupValues?.get(1) ?: return emptyList()
-    val array = JSONArray(raw)
-    return (0 until array.length()).mapNotNull { i ->
-        val obj  = array.getJSONObject(i)
-        val name = obj.optString("name").takeIf { it.isNotBlank() } ?: return@mapNotNull null
-        val url  = obj.optString("url").takeIf  { it.isNotBlank() } ?: return@mapNotNull null
-        Pair(name, url)
-    }
-}
-
 
 //Peachify
 fun peachifyDecrypt(encrypt: String): String? {
@@ -1537,40 +1429,6 @@ fun parseQualityDivs(html: String): List<VideoQuality> {
         }.toList()
 }
 
-//Anichi
-
-fun decodeToBeParsed(encoded: String): String? {
-    return try {
-        val raw = base64DecodeArray(encoded)
-
-        if (raw.size < 29) return null
-
-        val iv = raw.copyOfRange(1, 13)
-
-        val ctr = ByteArray(16)
-        System.arraycopy(iv, 0, ctr, 0, iv.size)
-        ctr[15] = 0x02
-
-        val ciphertext = raw.copyOfRange(13, raw.size - 16)
-
-        val key = MessageDigest
-            .getInstance("SHA-256")
-            .digest("Xot36i3lK3:v1".toByteArray())
-
-        val cipher = Cipher.getInstance("AES/CTR/NoPadding")
-        cipher.init(
-            Cipher.DECRYPT_MODE,
-            SecretKeySpec(key, "AES"),
-            IvParameterSpec(ctr)
-        )
-
-        cipher.doFinal(ciphertext).toString(Charsets.UTF_8)
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    }
-}
-
 //Castle
 
 val castleHeaders = mapOf(
@@ -1634,126 +1492,6 @@ suspend fun makeCastleApiRequest(
 
     val finalJson = JSONObject(decryptedStr)
     return finalJson.optJSONObject("data") ?: finalJson
-}
-
-//CtgMovies
-
-fun unescapeNextChunk(raw: String): String {
-    val sb = StringBuilder(raw.length)
-    var i = 0
-    while (i < raw.length) {
-        val c = raw[i]
-        if (c == '\\' && i + 1 < raw.length) {
-            when (raw[i + 1]) {
-                '"' -> { sb.append('"'); i += 2 }
-                '\\' -> { sb.append('\\'); i += 2 }
-                'n' -> { sb.append('\n'); i += 2 }
-                't' -> { sb.append('\t'); i += 2 }
-                'u' -> {
-                    if (i + 5 < raw.length) {
-                        val hex = raw.substring(i + 2, i + 6)
-                        sb.append(hex.toInt(16).toChar())
-                        i += 6
-                    } else { sb.append(c); i++ }
-                }
-                else -> { sb.append(raw[i + 1]); i += 2 }
-            }
-        } else {
-            sb.append(c); i++
-        }
-    }
-    return sb.toString()
-}
-
-// Concatenate every self.__next_f.push chunk into one big decoded blob
-fun buildRscBlob(html: String): String {
-    val NEXT_F_PREFIX = "self.__next_f.push([1,\""
-    val NEXT_F_SUFFIX = "\"])"
-    val blob = StringBuilder()
-    var searchFrom = 0
-    while (true) {
-        val start = html.indexOf(NEXT_F_PREFIX, searchFrom)
-        if (start == -1) break
-        val contentStart = start + NEXT_F_PREFIX.length
-        val end = html.indexOf(NEXT_F_SUFFIX, contentStart)
-        if (end == -1) break
-        val raw = html.substring(contentStart, end)
-        blob.append(unescapeNextChunk(raw))
-        searchFrom = end + NEXT_F_SUFFIX.length
-    }
-    return blob.toString()
-}
-
-// Extract EVERY balanced "links":[...] JSON array found in the blob.
-fun extractAllLinksArraysJson(blob: String): List<String> {
-    val key = "\"links\":["
-    val results = mutableListOf<String>()
-    var searchFrom = 0
-    while (true) {
-        val keyIdx = blob.indexOf(key, searchFrom)
-        if (keyIdx == -1) break
-        val arrStart = keyIdx + key.length - 1 // position of '['
-        var depth = 0
-        var i = arrStart
-        var arrEnd = -1
-        while (i < blob.length) {
-            when (blob[i]) {
-                '[' -> depth++
-                ']' -> {
-                    depth--
-                    if (depth == 0) { arrEnd = i; break }
-                }
-            }
-            i++
-        }
-        if (arrEnd == -1) break
-        results.add(blob.substring(arrStart, arrEnd + 1))
-        searchFrom = arrEnd + 1
-    }
-    return results
-}
-
-fun parseCtgLinks(html: String): List<CTGLink> {
-    val blob = buildRscBlob(html)
-    val arrJsonList = extractAllLinksArraysJson(blob)
-    if (arrJsonList.isEmpty()) return emptyList()
-
-    val result = mutableListOf<CTGLink>()
-    for (arrJson in arrJsonList) {
-        val arr = runCatching { JSONArray(arrJson) }.getOrNull() ?: continue
-        for (idx in 0 until arr.length()) {
-            val obj = arr.optJSONObject(idx) ?: continue
-            val url = obj.optString("url").takeIf { it.isNotBlank() } ?: continue
-
-            val audioTracks = mutableListOf<Pair<String, String>>()
-            obj.optJSONArray("audio_tracks")?.let { tracksArr ->
-                for (j in 0 until tracksArr.length()) {
-                    val t = tracksArr.optJSONObject(j) ?: continue
-                    val aUrl = t.optString("url")
-                    val label = t.optString("label", t.optString("language", ""))
-                    if (aUrl.isNotBlank()) audioTracks.add(aUrl to label)
-                }
-            }
-
-            result.add(
-                CTGLink(
-                    quality = obj.optString("quality"),
-                    url = url,
-                    hlsUrl = obj.optString("hls_url").takeIf { it.isNotBlank() && it != "null" },
-                    type = obj.optString("type"),
-                    source = obj.optString("source"),
-                    language = obj.optString("language"),
-                    sizeBytes = obj.optLong("size_bytes", -1L).takeIf { it >= 0 },
-                    seasonNumber = obj.optInt("season_number", -1).takeIf { it >= 0 },
-                    episodeNumber = obj.optInt("episode_number", -1).takeIf { it >= 0 },
-                    audioTracks = audioTracks
-                )
-            )
-        }
-    }
-
-    // Dedup in case the same link array got captured twice via overlapping matches
-    return result.distinctBy { it.url }
 }
 
 //MovieBlast
@@ -1866,4 +1604,50 @@ suspend fun resolveFibwatchStream(initialUrl: String, fallbackQuality: String): 
     }
 
     return null
+}
+
+//Cinejoy
+
+fun decodeBase64UrlSafe(data: String): ByteArray {
+    val padding = when (data.length % 4) {
+        2 -> "=="
+        3 -> "="
+        else -> ""
+    }
+    return Base64.getUrlDecoder().decode(data + padding)
+}
+
+fun encodeBase64UrlSafeNoPadding(data: ByteArray): String {
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(data)
+}
+
+//Hdhub4u
+
+suspend fun getHdhub4uStreams(
+    url: String,
+    subtitleCallback: (SubtitleFile) -> Unit,
+    callback: (ExtractorLink) -> Unit,
+) {
+    if(url.contains("greenmountmotors") || url.contains("hubcdn")) {
+        val source = getRedirectLinks(url)
+
+        Log.d("Hdhub4u", "source: $source")
+
+        loadSourceNameExtractor(
+            "Hdhub4u",
+            source,
+            "",
+            subtitleCallback,
+            callback
+        )
+
+    } else {
+        loadSourceNameExtractor(
+            "Hdhub4u",
+            url,
+            "",
+            subtitleCallback,
+            callback
+        )
+    }
 }

@@ -3,18 +3,6 @@ package com.megix
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.*
 
-/** Container for data fetched during MALSync requests */
-data class MalSyncData(
-    val title: String?,
-    val animepaheUrl: String?,
-    val aniId: Int?,
-    val malId: Int?,
-    val episode: Int?,
-    val year: Int?,
-    val origin: String,
-    val animepaheTitle: String?,
-)
-
 /** * Defines a provider and its execution logic for Standard, Anime, and MALSync data.
  * The `CineStreamExtractors.` receiver allows direct access to internal scraping functions.
  */
@@ -24,7 +12,6 @@ data class ProviderDef(
     val isTorrent: Boolean = false,
     val executeStandard: (suspend CineStreamExtractors.(res: AllLoadLinksData, subCb: (SubtitleFile) -> Unit, cb: (ExtractorLink) -> Unit) -> Unit)? = null,
     val executeAnime: (suspend CineStreamExtractors.(res: AllLoadLinksData, subCb: (SubtitleFile) -> Unit, cb: (ExtractorLink) -> Unit) -> Unit)? = null,
-    val executeMalSync: (suspend CineStreamExtractors.(data: MalSyncData, subCb: (SubtitleFile) -> Unit, cb: (ExtractorLink) -> Unit) -> Unit)? = null
 )
 
 object ProviderRegistry {
@@ -74,11 +61,6 @@ object ProviderRegistry {
             executeAnime = { res, subCb, cb -> invokeMoviebox(res.imdbTitle, res.imdbSeason, res.imdbEpisode, subCb, cb) }
         ),
         ProviderDef(
-            key = "p_cinemacity", displayName = "Cinemacity",
-            executeStandard = { res, subCb, cb -> invokeCinemacity(res.title, res.season, res.episode, subCb, cb) },
-            executeAnime = { res, subCb, cb -> invokeCinemacity(res.imdbTitle, res.imdbSeason, res.imdbEpisode, subCb, cb) }
-        ),
-        ProviderDef(
             key = "p_movieblast", displayName = "MovieBlast",
             executeStandard = { res, subCb, cb -> invokeMovieBlast(res.title, res.season, res.episode, subCb, cb) },
         ),
@@ -91,12 +73,12 @@ object ProviderRegistry {
             executeStandard = { res, _, cb -> invokeAllmovieland(res.imdbId, res.season, res.episode, cb) },
         ),
         ProviderDef(
-            key = "p_hexa", displayName = "Hexa",
-            executeStandard = { res, _, cb -> invokeHexa(res.tmdbId, res.season, res.episode, cb) },
+            key = "p_hdhub4u", displayName = "Hdhub4u",
+            executeStandard = { res, subCb, cb -> invokeHdhub4u(res.imdbId, res.season, res.episode, subCb ,cb) },
         ),
         ProviderDef(
-            key = "p_xpass", displayName = "Xpass",
-            executeStandard = { res, subCb, cb -> invokeXpass(res.tmdbId, res.season, res.episode, subCb, cb) }
+            key = "p_hexa", displayName = "Hexa",
+            executeStandard = { res, _, cb -> invokeHexa(res.tmdbId, res.season, res.episode, cb) },
         ),
         ProviderDef(
             key = "p_fshare", displayName = "Fshare",
@@ -116,11 +98,6 @@ object ProviderRegistry {
             executeAnime = { res, subCb, cb -> invokeVaPlayer(res.imdbId, res.imdbSeason, res.imdbEpisode, subCb, cb) }
         ),
         ProviderDef(
-            key = "p_ctgmovies", displayName = "CtgMovies",
-            executeStandard = { res, subCb, cb -> invokeCtgMovies(res.title, res.season, res.episode, "normal" ,subCb, cb) },
-            executeAnime = { res, subCb, cb -> invokeCtgMovies(res.imdbTitle, res.imdbSeason, res.imdbEpisode, "anime" ,subCb, cb) }
-        ),
-        ProviderDef(
             key = "p_vidzee", displayName = "Vidzee",
             executeStandard = { res, subCb, cb -> invokeVidzee(res.tmdbId, res.season, res.episode, subCb, cb) }
         ),
@@ -131,6 +108,10 @@ object ProviderRegistry {
         ProviderDef(
             key = "p_vidfastpro", displayName = "VidFastPro",
             executeStandard = { res, subCb, cb -> invokeVidFastPro(res.tmdbId, res.season, res.episode, subCb, cb) }
+        ),
+        ProviderDef(
+            key = "p_cinejoy", displayName = "Cinejoy",
+            executeStandard = { res, subCb, cb -> invokeCinejoy(res.title, res.imdbId ,res.tmdbId, res.year ,res.season, res.episode, subCb, cb) }
         ),
         ProviderDef(
             key = "p_vidcore", displayName = "Vidcore",
@@ -150,25 +131,14 @@ object ProviderRegistry {
             executeAnime = { res, subCb, cb -> invokeReanime(res.anilistId, res.episode, subCb, cb) }
         ),
         ProviderDef(
+            key = "p_just4anime", displayName = "Just4Anime",
+            executeAnime = { res, subCb, cb -> invokeJust4Anime(res.anilistId, res.episode, subCb, cb) }
+        ),
+        ProviderDef(
             key = "p_zinkmovies", displayName = "Zinkmovies",
             executeStandard = { res, subCb, cb -> invokeZinkmovies(res.title, res.year, res.season, res.episode, subCb, cb) },
             executeAnime = { res, subCb, cb -> invokeZinkmovies(res.imdbTitle, res.imdbYear, res.imdbSeason, res.imdbEpisode, subCb, cb) }
         ),
-        // ProviderDef(
-        //     key = "p_netflix", displayName = "Netflix",
-        //     executeStandard = { res, subCb, cb -> invokeNetmirror("Netflix", "nf", res.title, res.year, res.season, res.episode, subCb, cb) },
-        //     executeAnime = { res, subCb, cb -> invokeNetmirror("Netflix", "nf", res.imdbTitle, res.imdbYear, res.imdbSeason, res.imdbEpisode, subCb, cb) }
-        // ),
-        // ProviderDef(
-        //     key = "p_primevideo", displayName = "Prime Video",
-        //     executeStandard = { res, subCb, cb -> invokeNetmirror("PrimeVideo", "pv", res.title, res.year, res.season, res.episode, subCb, cb) },
-        //     executeAnime = { res, subCb, cb -> invokeNetmirror("PrimeVideo", "pv", res.imdbTitle, res.imdbYear, res.imdbSeason, res.imdbEpisode, subCb, cb) }
-        // ),
-        // ProviderDef(
-        //     key = "p_disney", displayName = "Hotstar",
-        //     executeStandard = { res, subCb, cb -> invokeNetmirror("Hotstar", "hs", res.title, res.year, res.season, res.episode, subCb, cb) },
-        //     executeAnime = { res, subCb, cb -> invokeNetmirror("Hotstar", "hs", res.imdbTitle, res.imdbYear, res.imdbSeason, res.imdbEpisode, subCb, cb) }
-        // ),
         ProviderDef(
             key = "p_bollywood", displayName = "Gramcinema",
             executeStandard = { res, _, cb -> invokeBollywood(res.title, res.year, res.season, res.episode, cb) },
@@ -195,6 +165,10 @@ object ProviderRegistry {
         ProviderDef(
             key = "p_vidup", displayName = "Vidup",
             executeStandard = { res, subCb, cb -> invokeVidup(res.tmdbId, res.season, res.episode, subCb, cb) }
+        ),
+        ProviderDef(
+            key = "p_meowtv", displayName = "Meowtv",
+            executeStandard = { res, subCb, cb -> invokeMeowtv(res.tmdbId, res.season, res.episode, subCb, cb) }
         ),
         ProviderDef(
             key = "p_moviesmod", displayName = "Moviesmod",
@@ -249,15 +223,6 @@ object ProviderRegistry {
             executeStandard = { res, subCb, cb -> invokeLevidia(res.title, res.year, res.season, res.episode, subCb, cb) },
         ),
         ProviderDef(
-            key = "p_hdghartv", displayName = "HdGharTv",
-            executeStandard = { res, subCb, cb -> if(!res.isAnime) invokeHdGharTv(res.title, res.tmdbId, res.season, res.episode, subCb, cb) },
-        ),
-        // ProviderDef(
-        //     key = "p_dahmermovies", displayName = "DahmerMovies",
-        //     executeStandard = { res, _, cb -> invokeDahmerMovies(res.title, res.year, res.season, res.episode, cb) },
-        //     executeAnime = { res, _, cb -> invokeDahmerMovies(res.imdbTitle, res.imdbYear, res.imdbSeason, res.imdbEpisode, cb) }
-        // ),
-        ProviderDef(
             key = "p_animesalt", displayName = "Animesalt",
             executeStandard = { res, subCb, cb -> if (res.isAnime || res.isCartoon) invokeAnimesalt(res.title, res.season, res.episode, subCb, cb) },
             executeAnime = { res, subCb, cb -> invokeAnimesalt(res.imdbTitle, res.imdbSeason, res.imdbEpisode, subCb, cb) }
@@ -287,16 +252,6 @@ object ProviderRegistry {
             key = "p_skymovies", displayName = "SkyMovies",
             executeStandard = { res, subCb, cb -> if (!res.isAnime) invokeSkymovies(res.title, res.airedYear ?: res.year, res.episode, subCb, cb) }
         ),
-        ProviderDef(
-            key = "p_hdmovie2", displayName = "HDMovie2",
-            executeStandard = { res, subCb, cb -> if (!res.isAnime) invokeHdmovie2(res.title, res.airedYear ?: res.year, res.episode, subCb, cb) }
-        ),
-        ProviderDef(
-            key = "p_mostraguarda", displayName = "Mostraguarda",
-            executeStandard = { res, subCb, cb -> if (res.season == null) invokeMostraguarda(res.imdbId, subCb, cb) }
-        ),
-
-        // ── Asian Drama & Anime Specific (Including MALSync logic) ─
         ProviderDef(
             key = "p_kisskh", displayName = "KissKH",
             executeStandard = { res, subCb, cb -> if (res.isAsian) invokeKisskh(res.title, res.year, res.season, res.episode, subCb, cb) }
@@ -331,31 +286,20 @@ object ProviderRegistry {
             executeAnime = { res, subCb, cb -> invokeAnidb(res.imdbTitle ?: res.title, res.year, res.episode, subCb, cb) }
         ),
         ProviderDef(
-            key = "p_animepahe", displayName = "AnimePahe",
-            executeMalSync = { data, subCb, cb -> invokeAnimepahe(data.animepaheUrl, data.episode, subCb, cb) }
-        ),
-        ProviderDef(
             key = "p_animetoshohttp", displayName = "AnimeToshoHttp",
-            executeMalSync = { data, subCb, cb -> invokeAnimetoshoHttp(data.title, data.malId, data.episode, subCb, cb) }
+            executeAnime = { res, subCb, cb -> invokeAnimetoshoHttp(res.title, res.malId, res.episode, subCb, cb) }
         ),
         ProviderDef(
             key = "p_tokyoinsider", displayName = "TokyoInsider",
             executeAnime = { res, subCb, cb -> invokeTokyoInsider(res.originalTitle ?: res.title, res.episode, subCb, cb) },
-            executeMalSync = { data, subCb, cb -> if (data.origin == "imdb") invokeTokyoInsider(data.title, data.episode, subCb, cb) }
         ),
         ProviderDef(
             key = "p_anizone", displayName = "Anizone",
             executeAnime = { res, subCb, cb -> invokeAnizone(res.originalTitle ?: res.title, res.episode, subCb, cb) },
-            executeMalSync = { data, subCb, cb -> if (data.origin == "imdb") invokeAnizone(data.title, data.episode, subCb, cb) }
-        ),
-        ProviderDef(
-            key = "p_animes", displayName = "Animes*",
-            executeAnime = { res, subCb, cb -> invokeAnimes(res.malId, res.anilistId, res.episode, res.year, "kitsu", subCb, cb) }
         ),
         ProviderDef(
             key = "p_animekizz", displayName = "Animekizz",
             executeAnime = { res, subCb, cb -> invokeAnimekizz(res.title, res.anilistId, res.episode, subCb, cb) },
-            executeMalSync = { data, subCb, cb -> if (data.origin == "imdb") invokeAnimekizz(data.title, data.aniId, data.episode, subCb, cb) }
         ),
     )
 

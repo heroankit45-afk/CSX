@@ -50,6 +50,15 @@ data class EncDecResult(
     @param:JsonProperty("token") val token: String?,
 )
 
+data class EncDecStreamResponse(
+    @param:JsonProperty("result") val result: EncDecStream?
+)
+
+data class EncDecStream(
+    @param:JsonProperty("url") val url: String?,
+    @param:JsonProperty("language") val language: String?,
+)
+
 // Vidfast
 data class VidfastServers(
     @param:JsonProperty("name") val name: String?,
@@ -129,17 +138,6 @@ data class AniListTitle(
     @param:JsonProperty("romaji") val romaji: String?
 )
 
-//XDmovies
-class XDMoviesSearchResponse: ArrayList<XDMoviesSearchResponse.SearchDataItem>() {
-    data class SearchDataItem(
-        val id: Int,
-        val path: String,
-        val title: String,
-        val tmdb_id: Int,
-        val type: String
-    )
-}
-
 //Anizip
 data class AnizipEpisode(
     @param:JsonProperty("anidbEid") val anidbEid: Int?,
@@ -168,25 +166,25 @@ data class AnimetoshoRelease(
 
 //Vidlink
 data class VidLinkStreamResponse(
-    @JsonProperty("stream") val stream: VidLinkStreamData? = null
+    @param:JsonProperty("stream") val stream: VidLinkStreamData? = null
 )
 
 data class VidLinkStreamData(
-    @JsonProperty("qualities") val qualities: Map<String, VidLinkQuality>? = null,
-    @JsonProperty("captions") val captions: List<VidLinkCaption>? = null
+    @param:JsonProperty("qualities") val qualities: Map<String, VidLinkQuality>? = null,
+    @param:JsonProperty("captions") val captions: List<VidLinkCaption>? = null
 )
 
 data class VidLinkQuality(
-    @JsonProperty("type") val type: String? = null,
-    @JsonProperty("url") val url: String? = null,
-    @JsonProperty("headers") val headers: Map<String, String>? = null,
-    @JsonProperty("requiresProxy") val requiresProxy: Boolean? = null
+    @param:JsonProperty("type") val type: String? = null,
+    @param:JsonProperty("url") val url: String? = null,
+    @param:JsonProperty("headers") val headers: Map<String, String>? = null,
+    @param:JsonProperty("requiresProxy") val requiresProxy: Boolean? = null
 )
 
 data class VidLinkCaption(
-    @JsonProperty("url") val url: String? = null,
-    @JsonProperty("language") val language: String? = null,
-    @JsonProperty("type") val type: String? = null
+    @param:JsonProperty("url") val url: String? = null,
+    @param:JsonProperty("language") val language: String? = null,
+    @param:JsonProperty("type") val type: String? = null
 )
 
 data class TmdbDate(
@@ -301,116 +299,6 @@ data class AllMovielandServer(
     }
 }
 
-//TMDB to mal
-data class AniMedia(
-    @param:JsonProperty("id") var id: Int? = null,
-    @param:JsonProperty("idMal") var idMal: Int? = null
-)
-
-data class AniPage(@param:JsonProperty("media") var media: java.util.ArrayList<AniMedia> = arrayListOf())
-
-data class AniData(@param:JsonProperty("Page") var Page: AniPage? = AniPage())
-
-data class AniSearch(@param:JsonProperty("data") var data: AniData? = AniData())
-
-data class AniIds(var id: Int? = null, var idMal: Int? = null)
-
-
-//NF
-data class NFVerifyUrl(
-    val nfverifyurl: String
-)
-
-data class NfSearchData(
-    val searchResult: List<NfSearchResult>,
-)
-
-data class NfSearchResult(
-    val id: String,
-    val t: String
-)
-
-data class NfPlaylist(
-    val status: String? = null,
-    val ott: String? = null,
-    val video_link: String? = null,
-    val referer: String? = null,
-    val title: String? = null,
-    val ep: String? = null,
-    val ep_title: String? = null,
-    val t: String? = null,
-    val usertoken: String? = null
-)
-
-data class NetflixSources(
-    @param:JsonProperty("file") val file: String? = null,
-    @param:JsonProperty("label") val label: String? = null,
-)
-
-data class NetflixEpisodes(
-    @param:JsonProperty("id") val id: String? = null,
-    @param:JsonProperty("t") val t: String? = null,
-    @param:JsonProperty("s") val s: String? = null,
-    @param:JsonProperty("ep") val ep: String? = null,
-)
-
-data class NetflixSeason(
-    @param:JsonProperty("s") val s: String? = null,
-    @param:JsonProperty("id") val id: String? = null,
-)
-
-data class NetflixResponse(
-    @param:JsonProperty("title") val title: String? = null,
-    @param:JsonProperty("year") val year : String? = null,
-    @param:JsonProperty("season") val season: ArrayList<NetflixSeason>? = arrayListOf(),
-    @param:JsonProperty("episodes") val episodes: ArrayList<NetflixEpisodes>? = arrayListOf(),
-    @param:JsonProperty("sources") val sources: ArrayList<NetflixSources>? = arrayListOf(),
-    @param:JsonProperty("nextPageShow") val nextPageShow: Int? = null,
-)
-
-//StreamAsia
-
-data class StreamAsiaSearch(
-    var metas : ArrayList<StreamAsiaMetas> = arrayListOf()
-)
-
-data class StreamAsiaMetas (
-  var id          : String? = null,
-  var name        : String? = null,
-  var type        : String? = null,
-)
-
-data class  StreamAsiaInfo(
-  var meta : StreamAsiaMeta = StreamAsiaMeta()
-)
-
-data class StreamAsiaMeta (
-    var videos      : ArrayList<StreamAsiaVideos> = arrayListOf()
-)
-
-data class StreamAsiaVideos (
-  var episode   : Int?    = null,
-  var id        : String? = null,
-)
-
-data class StreamAsiaStreams (
-  var streams : ArrayList<StreamAsiaStream> = arrayListOf()
-)
-
-data class StreamAsiaStream (
-  var title     : String? = null,
-  var url       : String? = null
-)
-
-data class StreamAsiaSubtitles (
-  var subtitles : ArrayList<StreamAsiaSubtitle> = arrayListOf()
-)
-
-data class StreamAsiaSubtitle (
-  var lang : String? = null,
-  var url  : String? = null
-)
-
 //Vega
 data class VegaSearchResponse(
     val hits: List<VegaHit>
@@ -479,71 +367,11 @@ data class StreamifyRequest(
     @param:JsonProperty("User-Agent") var userAgent: String? = null
 )
 
-data class JikanExternal(
-    @param:JsonProperty("name") val name: String? = null,
-    @param:JsonProperty("url") val url: String? = null,
-)
-
-data class JikanData(
-    @param:JsonProperty("title") val title: String? = null,
-    @param:JsonProperty("external") val external: ArrayList<JikanExternal>? = arrayListOf(),
-    val season: String,
-)
-
-data class JikanResponse(
-    @param:JsonProperty("data") val data: JikanData? = null,
-)
-
-
+//Multimovies
 data class ResponseHash(
     @param:JsonProperty("embed_url") val embed_url: String,
     @param:JsonProperty("key") val key: String? = null,
     @param:JsonProperty("type") val type: String? = null,
-)
-
-data class animepahe(
-    val total: Long,
-    @param:JsonProperty("per_page")
-    val perPage: Long,
-    @param:JsonProperty("current_page")
-    val currentPage: Long,
-    @param:JsonProperty("last_page")
-    val lastPage: Long,
-    @param:JsonProperty("next_page_url")
-    val nextPageUrl: Any?,
-    @param:JsonProperty("prev_page_url")
-    val prevPageUrl: Any?,
-    val from: Long,
-    val to: Long,
-    val data: List<Daum>,
-)
-
-data class Daum(
-    val id: Long,
-    @param:JsonProperty("anime_id")
-    val animeId: Long,
-    val episode: Int,
-    val episode2: Long,
-    val edition: String,
-    val title: String,
-    val snapshot: String,
-    val disc: String,
-    val audio: String,
-    val duration: String,
-    val session: String,
-    val filler: Long,
-    @param:JsonProperty("created_at")
-    val createdAt: String,
-)
-
-//Malsync
-data class MALSyncSites(
-    @param:JsonProperty("animepahe") val animepahe: HashMap<String?, HashMap<String, String?>>? = hashMapOf(),
-)
-
-data class MALSyncResponses(
-    @param:JsonProperty("title") val title: String? = null,
-    @param:JsonProperty("Sites") val sites: MALSyncSites? = null,
 )
 
 //Subtitles
@@ -566,38 +394,6 @@ data class Url(
     val link: String,
     val resulation: String,
 )
-
-data class CinemaOSReponse(
-    val data: CinemaOSReponseData,
-    val encrypted: Boolean,
-)
-
-data class CinemaOSReponseData(
-    val encrypted: String,
-    val cin: String,
-    val mao: String,
-    val salt: String,
-)
-
-data class CinemaOsAuthResponse(
-    val token: String,
-    val expiresIn: Long,
-)
-
-typealias TripleOneMoviesServerList = List<TripleOneMoviesServer>;
-
-data class TripleOneMoviesServer(
-    val name: String,
-    val description: String,
-    val image: String,
-    val data: String,
-)
-
-data class TripleOneMoviesStream(
-    val noReferrer: Boolean,
-    val url: String,
-)
-
 
 data class PrimeSrcServerList(
     @param:JsonProperty("servers") val servers: List<PrimeSrcServer>?
@@ -907,39 +703,6 @@ data class AnikotoServerResult(
     val url: String? = null,
 )
 
-//HdGharTv
-
-data class HdGharSearchResponse(
-    val movies: List<HdGharSearchItem>? = null,
-    val series: List<HdGharSearchItem>? = null
-)
-
-data class HdGharSearchItem(
-    @param:JsonProperty("_id") val id: String? = null,
-    val tmdbId: Int? = null
-)
-
-data class HdGharDetailsResponse(
-    val streamingLinks: List<HdGharLink>? = null, // For Movies
-    val seasons: List<HdGharSeason>? = null              // For Series
-)
-
-data class HdGharSeason(
-    val seasonNumber: Int? = null,
-    val episodes: List<HdGharEpisode>? = null
-)
-
-data class HdGharEpisode(
-    val episodeNumber: Int? = null,
-    val streamingLinks: List<HdGharLink>? = null
-)
-
-data class HdGharLink(
-    val quality: String? = null,
-    val url: String? = null,
-    val type: String? = null
-)
-
 //CtgMovies
 
 data class CTGLink(
@@ -1039,34 +802,176 @@ data class VidupTrack(
 //Fibwatch
 
 data class FibwatchEpisode(
-    @JsonProperty("title") val title: String? = null,
-    @JsonProperty("url") val url: String? = null
+    @param:JsonProperty("title") val title: String? = null,
+    @param:JsonProperty("url") val url: String? = null
 )
 
 data class FibwatchEpisodesResponse(
-    @JsonProperty("episodes") val episodes: List<FibwatchEpisode>? = null
+    @param:JsonProperty("episodes") val episodes: List<FibwatchEpisode>? = null
 )
 
 data class FibwatchSource(
-    @JsonProperty("url") val url: String? = null,
-    @JsonProperty("res") val res: String? = null
+    @param:JsonProperty("url") val url: String? = null,
+    @param:JsonProperty("res") val res: String? = null
 )
 
 data class FibwatchSwitcherResponse(
-    @JsonProperty("current") val current: List<FibwatchSource>? = null,
-    @JsonProperty("popup") val popup: List<FibwatchSource>? = null
+    @param:JsonProperty("current") val current: List<FibwatchSource>? = null,
+    @param:JsonProperty("popup") val popup: List<FibwatchSource>? = null
 )
 
 //Anineko
 
 data class AninekoSearchResponse(
-    @JsonProperty("success") val success: Boolean? = null,
-    @JsonProperty("results") val results: List<AninekoSearchResult>? = null
+    @param:JsonProperty("success") val success: Boolean? = null,
+    @param:JsonProperty("results") val results: List<AninekoSearchResult>? = null
 )
 
 data class AninekoSearchResult(
-    @JsonProperty("title") val title: String? = null,
-    @JsonProperty("url") val url: String? = null,
-    @JsonProperty("image") val image: String? = null,
-    @JsonProperty("meta") val meta: String? = null
+    @param:JsonProperty("title") val title: String? = null,
+    @param:JsonProperty("url") val url: String? = null,
+    @param:JsonProperty("image") val image: String? = null,
+    @param:JsonProperty("meta") val meta: String? = null
+)
+
+//Cinejoy
+
+data class CinejoyServersResponse(
+    var servers: List<CinejoyServers>? = null
+)
+
+data class CinejoyServers(
+    var name: String? = null
+)
+
+data class CinejoyEncResponse(
+    var status: Int? = null,
+    var result: CinejoyEnc? = null
+)
+
+data class CinejoyEnc(
+    var data: String? = null,
+    var state: CinejoyState? = null
+)
+
+data class CinejoyState(
+    var responseKey: String? = null,
+    var aad: String? = null
+)
+
+data class CinejoyDecResponse(
+    var status: Int? = null,
+    var result: CinejoyDecResultOuter? = null
+)
+
+data class CinejoyDecResultOuter(
+    var data: CinejoyDecData? = null,
+    var status: Int? = null
+)
+
+data class CinejoyDecData(
+    var stream: List<CinejoyStream>? = null,
+    var error: String? = null
+)
+
+data class CinejoyStream(
+    var type: String? = null,
+    var id: String? = null,
+    var playlist: String? = null,
+    var qualities: Map<String, CinejoyQuality>? = null,
+    var captions: List<CinejoyCaption>? = null
+)
+
+data class CinejoyQuality(
+    var type: String? = null,
+    var url: String? = null
+)
+
+data class CinejoyCaption(
+    var type: String? = null,
+    var id: String? = null,
+    var url: String? = null,
+    var language: String? = null
+)
+
+//Just4Anime
+
+data class Just4Anime(
+    val success: Boolean? = null,
+    val data: Just4AnimeData? = null
+)
+
+data class Just4AnimeData(
+    val animeId: String? = null,
+    val malId: Long? = null,
+    val servers: List<Just4AnimeServer> = emptyList()
+)
+
+data class Just4AnimeServer(
+    val code: String? = null,
+    val displayName: String? = null,
+    val animeId: String? = null,
+    val episodeId: String? = null,
+    val hasEpisode: Boolean = false,
+    val totalEpisodes: Int = 0,
+    val types: List<String> = emptyList()
+)
+
+data class Just4AnimeMetaSources(
+    val success: Boolean? = null,
+    val data: Just4AnimeMetaSourceData? = null
+)
+
+data class Just4AnimeMetaSourceData(
+    val episode: Just4AnimeMetaEpisode? = null,
+    val isDub: Boolean? = null,
+    val type: String? = null,
+    val sources: List<Just4AnimeSourceItem> = emptyList(),
+    val subtitles: List<Just4AnimeSubtitleItem> = emptyList(),
+    val iframe: List<Just4AnimeIframeItem> = emptyList()
+)
+
+data class Just4AnimeMetaEpisode(
+    val number: Int? = null,
+    val id: String? = null,
+    val title: String? = null
+)
+
+data class Just4AnimeSourceItem(
+    val url: String? = null,
+    val quality: String? = null,
+    val isM3U8: Boolean = false,
+    val isDub: Boolean? = null,
+    val server: String? = null,
+    val headers: Map<String, String>? = null,
+    val proxied: Boolean? = null
+)
+
+data class Just4AnimeSubtitleItem(
+    val url: String? = null,
+    val lang: String? = null,
+    val language: String? = null,
+    val format: String? = null,
+    val headers: Map<String, String>? = null
+)
+
+data class Just4AnimeIframeItem(
+    val url: String? = null,
+    val quality: String? = null,
+    val server: String? = null,
+    val category: String? = null
+)
+
+//Hdhub4u
+
+data class Hdhub4u (
+  var hits : ArrayList<Hdhub4uHits> = arrayListOf(),
+)
+
+data class Hdhub4uHits (
+  var document : Hdhub4uDocument? = Hdhub4uDocument(),
+)
+
+data class Hdhub4uDocument (
+  var permalink : String? = null,
 )

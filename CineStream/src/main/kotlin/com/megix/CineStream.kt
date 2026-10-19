@@ -31,10 +31,6 @@ open class CineStream: Plugin() {
             registerMainAPI(CineTmdbProvider())
         }
 
-        registerExtractorAPI(Kwik())
-        registerExtractorAPI(Pahe())
-        registerExtractorAPI(SuperVideo())
-        registerExtractorAPI(Akamaicdn())
         registerExtractorAPI(HubCloud())
         registerExtractorAPI(VCloud())
         registerExtractorAPI(GDLink())
@@ -55,8 +51,6 @@ open class CineStream: Plugin() {
         registerExtractorAPI(PpzjYoutube())
         registerExtractorAPI(Asianload())
         registerExtractorAPI(Embedload())
-        registerExtractorAPI(Cloudnestra())
-        registerExtractorAPI(Cloudorchestranova())
         registerExtractorAPI(FlixCloud())
         registerExtractorAPI(VibePlayer())
         registerExtractorAPI(Bibiemb())
@@ -64,11 +58,15 @@ open class CineStream: Plugin() {
         registerExtractorAPI(Playmogo())
         registerExtractorAPI(Otakuvid())
         registerExtractorAPI(Otakuhg())
-        registerExtractorAPI(Allanimeups())
-        registerExtractorAPI(Bysekoze())
         registerExtractorAPI(MegaPlay())
         registerExtractorAPI(Vidtube())
         registerExtractorAPI(Vidwish())
+        registerExtractorAPI(Modiplay())
+        registerExtractorAPI(Iqsmartgames())
+        registerExtractorAPI(Minochinos())
+        registerExtractorAPI(Hblinks())
+        registerExtractorAPI(HdStream4u())
+        registerExtractorAPI(Hubstream())
 
         this.openSettings = { ctx: Context ->
             Settings.showSettingsDialog(ctx) {
